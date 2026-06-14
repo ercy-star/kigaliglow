@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart - KigaliGlow</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">KigaliGlow </div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="products.html">Shop</a>
+            <a href="cart.html">Cart (<span id="cart-count">0</span>)</a>
+        </nav>
+    </header>
+
+    <section class="cart-section">
+        <h1>Your Cart 🛒</h1>
+        <div id="cart-items"></div>
+        <div class="cart-total" id="cart-total"></div>
+        <div class="cart-actions" id="cart-actions"></div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 KigaliGlow. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        function displayCart() {
+            const cart = getCart();
+            const cartItems = document.getElementById("cart-items");
+            const cartTotal = document.getElementById("cart-total");
+            const cartActions = document.getElementById("cart-actions");
+
+            if (cart.length === 0) {
+                cartItems.innerHTML = "<p class='empty-cart'>Your cart is empty. <a href='products.html'>Shop now</a></p>";
+                cartTotal.innerHTML = "";
+                cartActions.innerHTML = "";
+                return;
+            }
+
+            cartItems.innerHTML = cart.map(item => `
+                <div class="cart-item">
+                    <span class="cart-emoji">${item.emoji}</span>
+                    <div class="cart-item-info">
+                        <h3>${item.name}</h3>
+                        <p>${item.price.toLocaleString()} RWF</p>
+                    </div>
+                    <div class="cart-item-controls">
+                        <button onclick="changeQty(${item.id}, -1)">−</button>
+                        <span>${item.quantity}</span>
+                        <button onclick="changeQty(${item.id}, 1)">+</button>
+                    </div>
+                    <div class="cart-item-subtotal">
+                        ${(item.price * item.quantity).toLocaleString()} RWF
+                    </div>
+                    <button class="remove-btn" onclick="removeItem(${item.id})">🗑️</button>
+                </div>
+            `).join("");
+
+            const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            cartTotal.innerHTML = `<h2>Total: ${total.toLocaleString()} RWF</h2>`;
+            cartActions.innerHTML = `
+                <a href="checkout.html" class="btn">Proceed to Checkout</a>
+                <button class="btn btn-danger" onclick="clearCart()">Clear Cart</button>
+            `;
+        }
+
+        function changeQty(id, change) {
+            const cart = getCart();
+            const item = cart.find(i => i.id === id);
+            if (item) {
+                item.quantity += change;
+                if (item.quantity <= 0) {
+                    removeItem(id);
+                    return;
+                }
+            }
+            saveCart(cart);
+            displayCart();
+        }
+
+        function removeItem(id) {
+            let cart = getCart();
+            cart = cart.filter(i => i.id !== id);
+            saveCart(cart);
+            displayCart();
+        }
+
+        function clearCart() {
+            saveCart([]);
+            displayCart();
+        }
+
+        displayCart();
+    </script>
+</body>
+</html>

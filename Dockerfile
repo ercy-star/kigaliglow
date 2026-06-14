@@ -1,20 +1,16 @@
-# Use official Node.js image
 FROM node:18-alpine
 
-# Set working directory inside container
+# Install build tools needed for better-sqlite3
+RUN apk add --no-cache python3 make g++
+
 WORKDIR /app
 
-# Copy package files first
 COPY package*.json ./
 
-# Install dependencies
 RUN npm install
 
-# Copy all project files
 COPY . .
 
-# Expose port 3000
 EXPOSE 3000
 
-# Start the server
 CMD ["node", "server.js"]

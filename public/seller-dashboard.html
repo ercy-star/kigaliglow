@@ -1,0 +1,128 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Dashboard - KigaliGlow</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">KigaliGlow </div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="products.html">Shop</a>
+            <a href="cart.html">Cart (<span id="cart-count">0</span>)</a>
+            <a href="seller-register.html">Sell on KigaliGlow</a>
+        </nav>
+    </header>
+
+    <section class="cart-section">
+        <h1 id="dashboard-title">My Seller Dashboard 📊</h1>
+
+        <div class="checkout-left" style="margin-bottom: 1.5rem;">
+            <h2>Add a New Product</h2>
+            <div class="form-group">
+                <label>Product Name</label>
+                <input type="text" id="product-name" placeholder="e.g. Hibiscus Body Scrub">
+            </div>
+            <div class="form-group">
+                <label>Price (RWF)</label>
+                <input type="number" id="product-price" placeholder="e.g. 6000">
+            </div>
+            <div class="form-group">
+                <label>Category</label>
+                <select id="product-category" style="width:100%; padding:0.6rem; border-radius:6px; border:1px solid #ccc;">
+                    <option value="skincare">Skincare</option>
+                    <option value="haircare">Haircare</option>
+                    <option value="bodycare">Bodycare</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Emoji (for product image)</label>
+                <input type="text" id="product-emoji" placeholder="e.g. 🌸" maxlength="2">
+            </div>
+            <button class="btn" onclick="addSellerProduct()">Add Product</button>
+        </div>
+
+        <h2>My Products & Earnings</h2>
+        <div id="seller-products"></div>
+        <div class="cart-total" id="seller-earnings"></div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 KigaliGlow. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        const sellerId = localStorage.getItem("sellerId");
+        const sellerShopName = localStorage.getItem("sellerShopName");
+
+        if (!sellerId) {
+            alert("Please register as a seller first!");
+            window.location.href = "seller-register.html";
+        } else {
+            document.getElementById("dashboard-title").textContent = `${sellerShopName}'s Dashboard 📊`;
+        }
+
+        function loadSellerData() {
+            fetch(`/api/sellers/${sellerId}/products`)
+                .then(res => res.json())
+                .then(products => {
+                    const container = document.getElementById("seller-products");
+                    if (products.length === 0) {
+                        container.innerHTML = "<p>You haven't added any products yet.</p>";
+                        return;
+                    }
+                    container.innerHTML = products.map(p => `
+                        <div class="cart-item">
+                            <span class="cart-emoji">${p.emoji}</span>
+                            <div class="cart-item-info">
+                                <h3>${p.name}</h3>
+                                <p>${p.category}</p>
+                            </div>
+                            <div class="cart-item-subtotal">${p.price.toLocaleString()} RWF</div>
+                        </div>
+                    `).join("");
+                });
+
+            fetch(`/api/sellers/${sellerId}/earnings`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("seller-earnings").innerHTML = `
+                        <h3>Total Sales: ${data.totalSales.toLocaleString()} RWF</h3>
+                        <h3>KigaliGlow Commission (10%): ${data.commission.toLocaleString()} RWF</h3>
+                        <h2 style="color:#2e7d32;">Your Earnings (90%): ${data.sellerEarnings.toLocaleString()} RWF</h2>
+                    `;
+                });
+        }
+
+        function addSellerProduct() {
+            const name = document.getElementById("product-name").value.trim();
+            const price = parseInt(document.getElementById("product-price").value);
+            const category = document.getElementById("product-category").value;
+            const emoji = document.getElementById("product-emoji").value.trim() || "🛍️";
+
+            if (!name || !price) {
+                alert("Please fill in product name and price!");
+                return;
+            }
+
+            fetch("/api/sellers/products", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ sellerId, name, price, category, emoji })
+            })
+            .then(res => res.json())
+            .then(() => {
+                alert("Product added successfully!");
+                document.getElementById("product-name").value = "";
+                document.getElementById("product-price").value = "";
+                loadSellerData();
+            });
+        }
+
+        loadSellerData();
+    </script>
+</body>
+</html>

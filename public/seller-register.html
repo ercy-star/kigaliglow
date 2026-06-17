@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Become a Seller - KigaliGlow</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">KigaliGlow </div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="products.html">Shop</a>
+            <a href="cart.html">Cart (<span id="cart-count">0</span>)</a>
+            <a href="seller-register.html">Sell on KigaliGlow</a>
+        </nav>
+    </header>
+
+    <section class="checkout-section">
+        <div class="checkout-left" style="flex: 2;">
+            <h2>Become a KigaliGlow Seller</h2>
+            <p style="margin-bottom: 1.5rem; color: #555;">
+                Register your shop and start selling your beauty products to customers across Kigali.
+                KigaliGlow takes a small 10% commission on each sale, you keep 90%.
+            </p>
+            <div class="form-group">
+                <label>Your Full Name</label>
+                <input type="text" id="seller-name" placeholder="e.g. Aline Mukamana">
+            </div>
+            <div class="form-group">
+                <label>Shop Name</label>
+                <input type="text" id="shop-name" placeholder="e.g. Aline's Natural Beauty">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="seller-email" placeholder="e.g. aline@gmail.com">
+            </div>
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" id="seller-phone" placeholder="e.g. 0788123456">
+            </div>
+            <button class="btn" id="register-btn">Register as Seller</button>
+        </div>
+    </section>
+
+    <div id="seller-confirmation-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Welcome to KigaliGlow!</h2>
+            <p id="seller-confirmation-details"></p>
+            <p>You can now add products from your seller dashboard.</p>
+            <a href="seller-dashboard.html" class="btn">Go to My Dashboard</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 KigaliGlow. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        document.getElementById("register-btn").addEventListener("click", function () {
+            var name = document.getElementById("seller-name").value.trim();
+            var shopName = document.getElementById("shop-name").value.trim();
+            var email = document.getElementById("seller-email").value.trim();
+            var phone = document.getElementById("seller-phone").value.trim();
+
+            if (!name || !shopName || !email || !phone) {
+                alert("Please fill in all fields!");
+                return;
+            }
+
+            fetch("/api/sellers", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: name, shopName: shopName, email: email, phone: phone })
+            })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    localStorage.setItem("sellerId", data.sellerId);
+                    localStorage.setItem("sellerShopName", shopName);
+                    document.getElementById("seller-confirmation-details").textContent =
+                        shopName + " is now registered! Seller ID: " + data.sellerId;
+                    document.getElementById("seller-confirmation-modal").classList.remove("hidden");
+                })
+                .catch(function (err) {
+                    alert("Something went wrong. Please try again.");
+                    console.error(err);
+                });
+        });
+    </script>
+</body>
+</html>
